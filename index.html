@@ -1,18 +1,23 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>undeepfryer</title>
+<title>undeepfryer: save raw live photos</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@600&display=swap');
 body { margin: 56px auto; padding: 0 32px; max-width: 900px; color: #333; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
 h1 { font-family: "Noto Serif Display", Georgia, serif; font-size: 3rem; margin: 0; }
+a:link { color: #566a86; }
+a:visited { color: #6f6257; }
+#intro { padding-bottom: 1em; border-bottom: 1px solid #b7b1aa; }
 #why { margin: 0 0 1em 1.2em; padding-left: 1em; border-left: 2px solid #bbb; color: #666; }
+button { color: #463b31; background: #efe9e1; border: 1px solid #b9ac9a; padding: 4px 10px; }
+#frames { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 </style>
 
 <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
   <h1>undeepfryer</h1>
   <a href="https://github.com/olivewong/live-photo-undeepfryer" target="_blank" rel="noopener" aria-label="github">github</a>
 </div>
-<p>live photo -&gt; raw, unprocessed frames <a href="#" id="whyLink">why?</a></p>
+<p id="intro">live photo -&gt; raw, unprocessed frames <a href="#" id="whyLink">why?</a></p>
 <div id="why" hidden>
   <p>goal: get the raw, unedited frames from live photos</p>
   <p>motivation: like many others (<a href="https://discussions.apple.com/thread/250580900?sortBy=rank" target="_blank" rel="noopener">1</a>, <a href="https://discussions.apple.com/thread/250990855?sortBy=rank" target="_blank" rel="noopener">2</a>, <a href="https://discussions.apple.com/thread/255189717?sortBy=rank" target="_blank" rel="noopener">3</a>, <a href="https://www.reddit.com/r/ApplePhotos/comments/1s39bc3/how_do_you_stop_live_photos_from_zooming_in_when/" target="_blank" rel="noopener">4</a>, <a href="https://discussions.apple.com/thread/255679984?sortBy=rank" target="_blank" rel="noopener">5</a>), i was deeply frustrated that live photos get cropped, worse lighting, deepfried and harsh as soon as you select a frame. there's no way to disable this.</p>
