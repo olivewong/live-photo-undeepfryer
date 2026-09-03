@@ -1,10 +1,25 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>live photo undeepfryer</title>
+<title>undeepfryer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Display:wght@600&display=swap');
+body { margin: 56px auto; padding: 0 32px; max-width: 900px; color: #333; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+h1 { font-family: "Noto Serif Display", Georgia, serif; font-size: 3rem; margin: 0; }
+#why { margin: 0 0 1em 1.2em; padding-left: 1em; border-left: 2px solid #bbb; color: #666; }
+</style>
 
-<h1>live photo undeepfryer</h1>
-<p>live photo -> raw, undeepfried frames</p>
-<p>choose the original .MOV from “Export Unmodified Original” <a href="https://support.apple.com/en-us/111762" target="_blank" rel="noopener" style="color:gray">(how to get this)</a></p>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+  <h1>undeepfryer</h1>
+  <a href="https://github.com/olivewong/live-photo-undeepfryer" target="_blank" rel="noopener" aria-label="github">github</a>
+</div>
+<p>live photo -&gt; raw, unprocessed frames <a href="#" id="whyLink">why?</a></p>
+<div id="why" hidden>
+  <p>goal: get the raw, unedited frames from live photos</p>
+  <p>motivation: like many others (<a href="https://discussions.apple.com/thread/250580900?sortBy=rank" target="_blank" rel="noopener">1</a>, <a href="https://discussions.apple.com/thread/250990855?sortBy=rank" target="_blank" rel="noopener">2</a>, <a href="https://discussions.apple.com/thread/255189717?sortBy=rank" target="_blank" rel="noopener">3</a>, <a href="https://www.reddit.com/r/ApplePhotos/comments/1s39bc3/how_do_you_stop_live_photos_from_zooming_in_when/" target="_blank" rel="noopener">4</a>, <a href="https://discussions.apple.com/thread/255679984?sortBy=rank" target="_blank" rel="noopener">5</a>), i was deeply frustrated that live photos get cropped, worse lighting, deepfried and harsh as soon as you select a frame. there's no way to disable this.</p>
+  <p>if you don't know what i'm talking about, open a live photo, edit, tap a different key frame, see it looks nice, then save the keyframe - completely different lighting.</p>
+  <p><a href="https://github.com/olivewong/live-photo-undeepfryer#why" target="_blank" rel="noopener">see readme for more info</a></p>
+</div>
+<p>upload .mov (<a href="https://support.apple.com/en-us/111762" target="_blank" rel="noopener">export from “Export Unmodified Original”</a>) here:</p>
 <input id="file" type="file" accept=".mov,video/quicktime,video/*">
 <button id="extract">extract pics</button>
 <pre id="status"></pre>
@@ -28,6 +43,13 @@ const frames = document.querySelector('#frames');
 const zoom = document.querySelector('#zoom');
 const zoomOut = document.querySelector('#zoomOut');
 const zoomIn = document.querySelector('#zoomIn');
+const whyLink = document.querySelector('#whyLink');
+const why = document.querySelector('#why');
+
+whyLink.onclick = (event) => {
+  event.preventDefault();
+  why.hidden = !why.hidden;
+};
 
 let frameUrls = [];
 let frameFiles = [];
