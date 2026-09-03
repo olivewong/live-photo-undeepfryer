@@ -10,6 +10,7 @@ a:visited { color: #6f6257; }
 #intro { padding-bottom: 1em; border-bottom: 1px solid #b7b1aa; }
 #why { margin: 0 0 1em 1.2em; padding-left: 1em; border-left: 2px solid #bbb; color: #666; }
 button { color: #463b31; background: #efe9e1; border: 1px solid #b9ac9a; padding: 4px 10px; }
+#nodata { font-size: .8rem; color: #888; margin: .4em 0 0; }
 #frames { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 </style>
 
@@ -27,6 +28,7 @@ button { color: #463b31; background: #efe9e1; border: 1px solid #b9ac9a; padding
 <p>upload .mov (<a href="https://support.apple.com/en-us/111762" target="_blank" rel="noopener">export from “Export Unmodified Original”</a>) here:</p>
 <input id="file" type="file" accept=".mov,video/quicktime,video/*">
 <button id="extract">extract pics</button>
+<p id="nodata">nothing is uploaded. runs entirely in your browser.</p>
 <pre id="status"></pre>
 <div id="zoom" hidden>
   <button id="zoomOut">zoom out</button>
