@@ -1,0 +1,170 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>live photo undeepfryer</title>
+
+<h1>live photo undeepfryer</h1>
+<p>live photo -> raw, undeepfried frames</p>
+<p>choose the original .MOV from “Export Unmodified Original” <a href="https://support.apple.com/en-us/111762" target="_blank" rel="noopener" style="color:gray">(how to get this)</a></p>
+<input id="file" type="file" accept=".mov,video/quicktime,video/*">
+<button id="extract">extract pics</button>
+<pre id="status"></pre>
+<div id="zoom" hidden>
+  <button id="zoomOut">zoom out</button>
+  <button id="zoomIn">zoom in</button>
+</div>
+<pre id="error" style="white-space:pre-wrap"></pre>
+<div id="frames"></div>
+
+
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+<script src="https://unpkg.com/fflate@0.8.2/umd/index.js"></script>
+<script>
+const { createFFmpeg, fetchFile } = FFmpeg;
+const file = document.querySelector('#file');
+const button = document.querySelector('#extract');
+const status = document.querySelector('#status');
+const error = document.querySelector('#error');
+const frames = document.querySelector('#frames');
+const zoom = document.querySelector('#zoom');
+const zoomOut = document.querySelector('#zoomOut');
+const zoomIn = document.querySelector('#zoomIn');
+
+let frameUrls = [];
+let frameFiles = [];
+let frameWidth = 160;
+let currentStem = 'live_photo';
+
+function clearOldResult() {
+  for (const url of frameUrls) URL.revokeObjectURL(url);
+  frameUrls = [];
+  frameFiles = [];
+  frames.replaceChildren();
+  status.textContent = '';
+  error.textContent = '';
+  zoom.hidden = true;
+  frameWidth = 160;
+}
+
+
+function resizeFrames(delta) {
+  frameWidth = Math.max(60, Math.min(800, frameWidth + delta));
+  for (const img of frames.querySelectorAll('img')) img.width = frameWidth;
+}
+
+zoomOut.onclick = () => resizeFrames(-40);
+zoomIn.onclick = () => resizeFrames(40);
+
+function isSuccessfulExit(e) {
+  return e?.status === 0 || /exit\(?0\)?|exit 0/i.test(String(e?.message || e));
+}
+
+function cleanStem(name) {
+  return name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_-]+/g, '_');
+}
+
+file.addEventListener('change', clearOldResult);
+
+button.onclick = async () => {
+  const selected = file.files[0];
+  if (!selected) return;
+
+  clearOldResult();
+  button.disabled = true;
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+  let ffmpeg;
+  const logLines = [];
+
+  try {
+    // create a fresh ffmpeg instance for every upload. ffmpeg.wasm 0.11 has a
+    // known bug where a second run on the same instance can throw exit(0).
+    ffmpeg = createFFmpeg({
+      log: true,
+      mainName: 'main',
+      corePath: 'https://unpkg.com/@ffmpeg/core-st@0.11.1/dist/ffmpeg-core.js',
+      logger: ({ type, message }) => {
+        console.log(`[${type}] ${message}`);
+        logLines.push(message);
+        if (logLines.length > 100) logLines.shift();
+      }
+    });
+
+    await ffmpeg.load();
+    ffmpeg.FS('writeFile', 'input.mov', await fetchFile(selected));
+
+    try {
+      await ffmpeg.run(
+        '-hide_banner',
+        '-nostdin',
+        '-y',
+        '-i', 'input.mov',
+        '-map', '0:v:0',
+        '-vsync', '0',
+        'frame_%04d.png'
+      );
+    } catch (e) {
+      if (!isSuccessfulExit(e)) throw e;
+    }
+
+    const names = ffmpeg.FS('readdir', '/')
+      .filter(x => /^frame_\d+\.png$/.test(x))
+      .sort();
+
+    if (!names.length) {
+      throw new Error('ffmpeg finished but no frames were created.');
+    }
+
+    status.textContent = `${names.length} frames. tap a frame to save it. `;
+    const downloadAll = document.createElement('a');
+    downloadAll.href = '#';
+    downloadAll.textContent = 'download all';
+    downloadAll.style.color = 'gray';
+    status.appendChild(downloadAll);
+    zoom.hidden = false;
+
+    const stem = cleanStem(selected.name);
+    currentStem = stem;
+    for (let i = 0; i < names.length; i++) {
+      const data = ffmpeg.FS('readFile', names[i]);
+      const url = URL.createObjectURL(new Blob([data.buffer], { type: 'image/png' }));
+      frameUrls.push(url);
+
+      const outName = `live_rescue_${stem}_${String(i + 1).padStart(4, '0')}.png`;
+      frameFiles.push({ name: outName, data: new Uint8Array(data) });
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = outName;
+
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = outName;
+      img.width = frameWidth;
+
+      a.appendChild(img);
+      frames.appendChild(a);
+      frames.appendChild(document.createTextNode(' '));
+    }
+
+    downloadAll.onclick = (event) => {
+      event.preventDefault();
+      const files = {};
+      for (const frame of frameFiles) files[frame.name] = frame.data;
+      const zip = fflate.zipSync(files, { level: 0 });
+      const url = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `live_rescue_${currentStem}.zip`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+  } catch (e) {
+    console.error(e);
+    status.textContent = 'could not undeepfry this one :(';
+    error.textContent = `error: ${e?.message || e}\n\nffmpeg output:\n${logLines.join('\n') || '(no ffmpeg output)'}`;
+  } finally {
+    // don't reuse this instance. see ffmpeg.wasm issue #330.
+    try { if (ffmpeg?.isLoaded()) ffmpeg.exit(); } catch (_) {}
+    button.disabled = false;
+  }
+};
+</script>
